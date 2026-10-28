@@ -60,7 +60,7 @@ def allowed_file(filename: str) -> bool:
 @app.route("/", methods=["GET"])
 def index() -> str:
     """Renders the main SongSense user interface."""
-    stats = sqlite_store.get_stats()
+    stats = redis_store.get_stats()
     return render_template("index.html", stats=stats)
 
 
