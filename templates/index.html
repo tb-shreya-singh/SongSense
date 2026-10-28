@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SongSense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #4A3A6E;
+    --ink-soft: #6F5F93;
+    --paper: #FAF6EF;
+    --card: #FFFBF5;
+    --lilac: #D9CCEE;
+    --dusty: #9C8BC3;
+    --dusty-deep: #8473B0;
+    --pink: #F5C3D6;
+    --butter: #F6E7A8;
+    --sage: #B7D3A8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: 'VT323', monospace; font-size: 22px; color: var(--ink); padding: 18px;
+    background-color: var(--dusty);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      radial-gradient(ellipse at 50% 38%, #E6DCF6 0%, #C2B3E0 38%, #9C8BC3 80%);
+    background-attachment: fixed;
+    image-rendering: pixelated;
+  }
+  h1, h2, h3, .px { font-family: 'Press Start 2P', monospace; font-weight: 400; line-height: 1.5; }
+  svg.sprite { display: block; shape-rendering: crispEdges; image-rendering: pixelated; }
+
+  /* floating background sprites */
+  .bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .bg .deco { position: absolute; pointer-events: auto; cursor: pointer; animation: bob 2.4s steps(4) infinite alternate; }
+  .deco.pop { animation: pop .5s steps(5) 1; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+  @keyframes pop { 0% { transform: scale(1) rotate(0); } 50% { transform: scale(1.6) rotate(20deg); } 100% { transform: scale(1) rotate(0); } }
+
+  /* start screen */
+  .start {
+    position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; text-align: center;
+    background-color: var(--paper);
+    background-image: radial-gradient(rgba(74,58,110,.14) 2px, transparent 2px); background-size: 24px 24px;
+    transition: opacity .3s steps(4), visibility .3s;
+  }
+  body.entered .start { opacity: 0; visibility: hidden; pointer-events: none; }
+  .start-btn { background: none; border: 0; cursor: pointer; padding: 20px; color: var(--ink); }
+  .start-btn .big { animation: wob 1.2s steps(3) infinite alternate; }
+  .start-btn:hover .big { transform: scale(1.08); }
+  @keyframes wob { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+  .start-title { font-size: clamp(14px, 3.6vw, 26px); margin: 16px 0 6px; }
+  .blink { font-family: 'Press Start 2P', monospace; font-size: 12px; animation: blink 1s steps(2) infinite; color: var(--dusty-deep); }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* shell */
+  .page { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; opacity: 0; transition: opacity .3s; }
+  body.entered .page { opacity: 1; }
+  .win {
+    background: var(--card); border: 4px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); margin-bottom: 26px;
+  }
+  .titlebar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px;
+    background: var(--lilac); border-bottom: 4px solid var(--ink);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 14px; height: 14px; border: 3px solid var(--ink); background: var(--card); display: block; }
+  .dots i:nth-child(2) { background: var(--pink); }
+  .dots i:nth-child(3) { background: var(--butter); }
+
+  .tabs { display: flex; gap: 8px; padding: 14px 16px 0; flex-wrap: wrap; }
+  .tab {
+    font-family: 'Press Start 2P', monospace; font-size: 11px; padding: 12px 14px; color: var(--ink); cursor: pointer;
+    background: var(--lilac); border: 4px solid var(--ink); border-bottom: 0; display: flex; align-items: center; gap: 8px;
+  }
+  .tab:hover { background: var(--pink); }
+  .tab.active { background: var(--card); position: relative; top: 4px; padding-bottom: 16px; }
+  .panels { border-top: 4px solid var(--ink); padding: 22px 16px; }
+  .panel { display: none; } .panel.active { display: block; }
+
+  /* listen */
+  .stage {
+    position: relative; min-height: 430px; display: grid; place-items: center; overflow: hidden; padding: 20px;
+    border: 4px solid var(--ink); background-color: #EFE8FA;
+    background-image: radial-gradient(rgba(74,58,110,.16) 2px, transparent 2px); background-size: 20px 20px;
+  }
+  .stage .deco { position: absolute; animation: bob 2s steps(4) infinite alternate; }
+  .center { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .listen-btn {
+    position: relative; width: 230px; height: 230px; border: 4px solid var(--ink); border-radius: 50%; cursor: pointer;
+    background: var(--pink); box-shadow: 6px 6px 0 var(--ink); display: grid; place-items: center; padding: 0;
+    transition: transform .1s steps(2);
+  }
+  .listen-btn:hover { transform: translate(-2px,-2px); box-shadow: 8px 8px 0 var(--ink); }
+  .listen-btn:active { transform: translate(4px,4px); box-shadow: 2px 2px 0 var(--ink); }
+  .listen-btn .face-closed { display: none; }
+  .listen-btn.recording .face-open { display: none; }
+  .listen-btn.recording .face-closed { display: block; }
+  .ring { position: absolute; inset: -6px; border-radius: 50%; border: 4px dotted var(--ink); opacity: 0; pointer-events: none; }
+  .listen-btn.recording .ring { animation: ripple 1.6s steps(8) infinite; }
+  .listen-btn.recording .ring.r2 { animation-delay: .5s; } .listen-btn.recording .ring.r3 { animation-delay: 1s; }
+  @keyframes ripple { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+  .listen-state { font-size: 13px; }
+  .meter { display: flex; gap: 4px; padding: 8px; background: var(--card); border: 4px solid var(--ink); }
+  .meter i { width: 14px; height: 22px; background: #E4DAF3; display: block; }
+  .meter i.on { background: var(--dusty-deep); } .meter i.on.hot { background: var(--pink); outline: 2px solid var(--ink); }
+  .mic-hint { font-size: 24px; min-height: 30px; }
+  .timer { font-family: 'Press Start 2P', monospace; font-size: 12px; color: var(--ink-soft); }
+  .time-bar { width: 260px; height: 14px; border: 3px solid var(--ink); background: var(--card); }
+  .time-bar div { height: 100%; width: 0; background: var(--sage); }
+
+  /* upload */
+  .upload { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+  .drop {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; min-height: 300px;
+    border: 4px dashed var(--ink); background: #F3EDFB; cursor: pointer; padding: 20px;
+  }
+  .drop:hover, .drop.dragover { background: var(--pink); }
+  .drop h2 { font-size: 15px; margin: 0; }
+  .drop p { margin: 0; }
+  .tag { border: 3px solid var(--ink); background: var(--card); padding: 4px 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side { display: flex; flex-direction: column; gap: 12px; }
+  .note { border: 4px solid var(--ink); background: var(--butter); padding: 10px 12px; box-shadow: 4px 4px 0 var(--ink); }
+  .note b { font-family: 'Press Start 2P', monospace; font-weight: 400; font-size: 10px; display: block; margin-bottom: 6px; }
+  .btn {
+    font-family: 'Press Start 2P', monospace; font-size: 12px; color: var(--ink); padding: 14px; cursor: pointer;
+    background: var(--pink); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+  }
+  .btn:hover:not(:disabled) { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+  .btn:active:not(:disabled) { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
+  .btn.alt { background: var(--lilac); } .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* result */
+  .result { position: relative; margin-top: 8px; }
+  .result.hidden { display: none; }
+  .washi {
+    position: absolute; top: -18px; left: 50%; width: 150px; height: 34px; transform: translateX(-50%) rotate(-3deg); z-index: 3;
+    background: repeating-linear-gradient(90deg, var(--pink) 0 12px, var(--card) 12px 24px); border: 3px solid var(--ink); opacity: .95;
+  }
+  .result-in { padding: 34px 20px 22px; display: grid; gap: 18px; }
+  .r-top { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .art { width: 84px; height: 84px; border: 4px solid var(--ink); background: var(--lilac); display: grid; place-items: center; }
+  .badge { display: inline-block; font-family: 'Press Start 2P', monospace; font-size: 10px; padding: 6px 8px; border: 3px solid var(--ink); }
+  .badge.match { background: var(--sage); } .badge.no-match { background: var(--pink); }
+  .r-title { font-size: clamp(14px, 3vw, 20px); margin: 8px 0 4px; word-break: break-word; }
+  .strength-head { display: flex; justify-content: space-between; font-family: 'Press Start 2P', monospace; font-size: 11px; margin-bottom: 14px; }
+  .bar { position: relative; height: 26px; border: 4px solid var(--ink); background: #F1EAFA; }
+  .bar .fill { height: 100%; width: 0; background: repeating-linear-gradient(90deg, var(--dusty-deep) 0 10px, #B3A3D6 10px 14px); transition: width .6s steps(10); }
+  .bar .handle { position: absolute; top: -17px; left: 0; transform: translateX(-50%); transition: left .6s steps(10); }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .fact { border: 3px solid var(--ink); background: #F6F0FC; padding: 8px 10px; }
+  .fact span.l { display: block; font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--ink-soft); margin-bottom: 6px; }
+  .fact span.v { font-size: 24px; word-break: break-word; }
+  .related { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .song { border: 4px solid var(--ink); background: var(--card); padding: 10px; box-shadow: 4px 4px 0 var(--ink); }
+  .song strong { display: block; margin-bottom: 6px; }
+  .chip { display: inline-block; margin: 2px 4px 2px 0; padding: 0 8px; border: 3px solid var(--ink); background: var(--lilac); font-size: 18px; }
+  .chip.reason { background: var(--butter); }
+
+  footer { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding-bottom: 20px; }
+  .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 3px solid var(--ink); background: var(--card); box-shadow: 3px 3px 0 var(--ink); font-size: 20px; }
+  .dot { width: 12px; height: 12px; background: var(--pink); border: 2px solid var(--ink); display: inline-block; }
+  .status.online .dot { background: var(--sage); }
+
+  @media (max-width: 720px) {
+    body { padding: 10px; font-size: 20px; } .upload { grid-template-columns: 1fr; }
+    .listen-btn { width: 190px; height: 190px; } .stage { min-height: 380px; } .tab { font-size: 9px; padding: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg" id="bg" aria-hidden="true"></div>
+
+<div class="start" id="start">
+  <button class="start-btn" id="startBtn" type="button" aria-label="Start SongSense">
+    <div class="big" data-sprite="star" data-px="22" data-y="#9C8BC3"></div>
+    <div class="start-title px">SongSense</div>
+    <div class="blink">PRESS START</div>
+  </button>
+</div>
+
+<div class="page">
+  <div class="win">
+    <div class="titlebar">
+      <div class="brand"><span data-sprite="note" data-px="3"></span><h1 class="px" style="font-size:14px;margin:0">SongSense</h1></div>
+      <div class="dots"><i></i><i></i><i></i></div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-target="listenPanel"><span data-sprite="heart" data-px="2"></span>Listen</button>
+      <button type="button" class="tab" data-target="uploadPanel"><span data-sprite="flower" data-px="2"></span>Upload a file</button>
+    </div>
+
+    <div class="panels">
+      <section id="listenPanel" class="panel active">
+        <div class="stage">
+          <span class="deco" style="left:7%;top:12%" data-sprite="note" data-px="5"></span>
+          <span class="deco" style="right:9%;top:16%;animation-delay:.4s" data-sprite="heart" data-px="5"></span>
+          <span class="deco" style="left:12%;bottom:12%;animation-delay:.8s" data-sprite="star" data-px="4"></span>
+          <span class="deco" style="right:12%;bottom:10%;animation-delay:1.2s" data-sprite="flower" data-px="5"></span>
+          <span class="deco" style="left:44%;top:3%;animation-delay:.6s" data-sprite="cloud" data-px="5"></span>
+
+          <div class="center">
+            <button id="micBtn" class="listen-btn" type="button" aria-label="Start or stop listening">
+              <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
+              <span class="face-open" data-sprite="face" data-px="9"></span>
+              <span class="face-closed" data-sprite="faceClosed" data-px="9"></span>
+            </button>
+            <div id="listenState" class="listen-state px">Tap to listen</div>
+            <div class="meter" id="meter" aria-label="Microphone level"></div>
+            <div id="micHint" class="mic-hint">Play a song near the mic</div>
+            <div class="time-bar"><div id="timeFill"></div></div>
+            <div id="recordTimer" class="timer">00:00 / 00:10</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="uploadPanel" class="panel">
+        <div class="upload">
+          <label id="dropZone" class="drop" for="audioFileInput">
+            <input id="audioFileInput" type="file" accept="audio/*" hidden />
+            <span data-sprite="doc" data-px="7"></span>
+            <h2 class="px">Drop a tune here</h2>
+            <p>WAV, MP3, OGG, FLAC, WEBM or M4A</p>
+            <div id="fileTag" class="tag">No file selected</div>
+          </label>
+          <div class="side">
+            <div class="note"><b>No filters</b>Mic uses no noise cancelling so music stays crisp.</div>
+            <div class="note" style="background:var(--pink)"><b>Tiny clips ok</b>A few clear seconds is enough to match.</div>
+            <button id="uploadBtn" class="btn" type="button" disabled>Identify!</button>
+            <button id="resetUploadBtn" class="btn alt" type="button">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="resultCard" class="result win hidden" aria-live="polite" style="margin-top:28px">
+        <div class="washi"></div>
+        <div class="result-in">
+          <div class="r-top">
+            <div class="art"><span data-sprite="note" data-px="6"></span></div>
+            <div>
+              <span id="matchBadge" class="badge match">Matched</span>
+              <h2 id="resultTitle" class="r-title">Waiting for a song</h2>
+              <div id="resultSub">Upload a clip or listen with the mic.</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="strength-head"><span>Match strength</span><span id="matchStrengthText">0%</span></div>
+            <div class="bar">
+              <div id="strengthFill" class="fill"></div>
+              <span id="strengthHandle" class="handle" data-sprite="flower" data-px="3"></span>
+            </div>
+          </div>
+
+          <div class="facts">
+            <div class="fact"><span class="l">VOTES</span><span id="votesValue" class="v">0</span></div>
+            <div class="fact"><span class="l">CONFIDENCE</span><span id="confidenceValue" class="v">0%</span></div>
+            <div class="fact"><span class="l">OFFSET</span><span id="offsetValue" class="v">0.0s</span></div>
+            <div class="fact"><span class="l">HASHES</span><span id="hashValue" class="v">0</span></div>
+            <div class="fact"><span class="l">COMPOSER</span><span id="composerValue" class="v">-</span></div>
+            <div class="fact"><span class="l">RAGA</span><span id="ragaValue" class="v">-</span></div>
+            <div class="fact"><span class="l">FILM</span><span id="filmValue" class="v">-</span></div>
+            <div class="fact"><span class="l">SINGER</span><span id="singerValue" class="v">-</span></div>
+          </div>
+
+          <div>
+            <div class="strength-head"><span>Related songs</span></div>
+            <div id="relatedSongs" class="related"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <div id="redisHealth" class="status"><span class="dot"></span>Redis</div>
+    <div id="neoHealth" class="status"><span class="dot"></span>Neo4j</div>
+  </footer>
+</div>
+
+<script>
+/* ---------- pixel sprites ---------- */
+const PAL = { k: '#4A3A6E', w: '#FFFBF5', p: '#F5C3D6', l: '#D9CCEE', d: '#8473B0', y: '#F6E7A8', g: '#B7D3A8' };
+const SPRITES = {
+  face: [
+    "......kkkkkkkk......",
+    "....kkk......kkk....",
+    "...kk..........kk...",
+    "..kk..kkkkkkkk..kk..",
+    "..k..kwwwwwwwwk..k..",
+    ".kddkkwwwwwwwwkkddk.",
+    ".kddkkwkwwwwkwkkddk.",
+    ".kddkkwkwwwwkwkkddk.",
+    ".kddkkpwwwwwwpkkddk.",
+    ".kddkkwkwwwwkwkkddk.",
+    ".kddkkwwkkkkwwkkddk.",
+    ".kkkkkwwwwwwwwkkkkk.",
+    "......kkkkkkkk......"
+  ],
+  faceClosed: [
+    "......kkkkkkkk......",
+    "....kkk......kkk....",
+    "...kk..........kk...",
+    "..kk..kkkkkkkk..kk..",
+    "..k..kwwwwwwwwk..k..",
+    ".kddkkwwwwwwwwkkddk.",
+    ".kddkkwkkwwkkwkkddk.",
+    ".kddkkwwwwwwwwkkddk.",
+    ".kddkkpwwwwwwpkkddk.",
+    ".kddkkwkwwwwkwkkddk.",
+    ".kddkkwwkkkkwwkkddk.",
+    ".kkkkkwwwwwwwwkkkkk.",
+    "......kkkkkkkk......"
+  ],
+  star: [
+    ".....k.....",
+    "....kyk....",
+    "....kyk....",
+    "kkkkkykkkkk",
+    ".kyyyyyyyk.",
+    "..kyyyyyk..",
+    "..kyyyyyk..",
+    ".kyykkkyyk.",
+    ".kkk...kkk."
+  ],
+  heart: [
+    ".kk...kk.",
+    "kppk.kppk",
+    "kpwpppppk",
+    "kpppppppk",
+    ".kpppppk.",
+    "..kpppk..",
+    "...kpk...",
+    "....k...."
+  ],
+  note: [
+    "....kkkk",
+    "....kd.k",
+    "....k..k",
+    "....k...",
+    "....k...",
+    "..kkk...",
+    ".kdddk..",
+    ".kdddk..",
+    "..kkk..."
+  ],
+  flower: [
+    "..kkkkk..",
+    ".kpppppk.",
+    "kpppyyppk",
+    "kppyyyypk",
+    "kpppyyppk",
+    ".kpppppk.",
+    "..kkkkk..",
+    "...kgk...",
+    "..gkgk...",
+    "...kgkg.."
+  ],
+  cloud: [
+    "....kkkk.......",
+    "..kkwwwwkk.kk..",
+    ".kwwwwwwwwkwwk.",
+    "kwwwwwwwwwwwwwk",
+    "kwwwwwwwwwwwwwk",
+    ".kkkkkkkkkkkkk."
+  ],
+  doc: [
+    "kkkkkkk..",
+    "kwwwwwkk.",
+    "kwwwwwkwk",
+    "kwwwwwkkk",
+    "kwdddwwwk",
+    "kwwwwwwwk",
+    "kwdddddwk",
+    "kwwwwwwwk",
+    "kkkkkkkkk"
+  ]
+};
+
+function spriteSVG(name, px, yColor) {
+  const rows = SPRITES[name];
+  const w = Math.max(...rows.map(r => r.length));
+  let rects = '';
+  rows.forEach((row, y) => {
+    let x = 0;
+    while (x < row.length) {
+      const ch = row[x];
+      if (ch === '.') { x++; continue; }
+      let e = x;
+      while (e < row.length && row[e] === ch) e++;
+      let fill = PAL[ch];
+      if (ch === 'y' && yColor) fill = yColor;
+      rects += `<rect x="${x}" y="${y}" width="${e - x}" height="1.02" fill="${fill}"/>`;
+      x = e;
+    }
+  });
+  return `<svg class="sprite" viewBox="0 0 ${w} ${rows.length}" width="${w * px}" height="${rows.length * px}" aria-hidden="true">${rects}</svg>`;
+}
+function hydrateSprites(root = document) {
+  root.querySelectorAll('[data-sprite]').forEach(el => {
+    if (el.dataset.done) return;
+    el.innerHTML = spriteSVG(el.dataset.sprite, Number(el.dataset.px || 4), el.dataset.y);
+    el.dataset.done = '1';
+  });
+}
+
+/* scattered background doodles */
+(function scatter() {
+  const bg = document.getElementById('bg');
+  const kinds = ['star', 'heart', 'note', 'flower', 'cloud'];
+  for (let i = 0; i < 18; i++) {
+    const s = document.createElement('span');
+    s.className = 'deco';
+    s.dataset.sprite = kinds[i % kinds.length];
+    s.dataset.px = String(3 + (i % 3));
+    s.style.left = (Math.random() * 94) + '%';
+    s.style.top = (Math.random() * 90) + '%';
+    s.style.animationDelay = (Math.random() * 2) + 's';
+    s.addEventListener('click', () => { s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); });
+    bg.appendChild(s);
+  }
+})();
+hydrateSprites();
+
+/* meter segments */
+const SEGMENTS = 16;
+const meterEl = document.getElementById('meter');
+for (let i = 0; i < SEGMENTS; i++) meterEl.appendChild(document.createElement('i'));
+const meterBars = meterEl.querySelectorAll('i');
+function setMeter(level) {
+  const on = Math.round(level * SEGMENTS);
+  meterBars.forEach((b, i) => {
+    b.classList.toggle('on', i < on);
+    b.classList.toggle('hot', i < on && i >= SEGMENTS - 3);
+  });
+}
+
+/* start + tabs */
+document.getElementById('startBtn').addEventListener('click', () => document.body.classList.add('entered'));
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  tabs.forEach(t => t.classList.toggle('active', t === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === tab.dataset.target));
+}));
+
+/* ---------- elements ---------- */
+const $ = id => document.getElementById(id);
+const micBtn = $('micBtn'), listenState = $('listenState'), micHint = $('micHint'), recordTimer = $('recordTimer'), timeFill = $('timeFill');
+const fileInput = $('audioFileInput'), fileTag = $('fileTag'), uploadBtn = $('uploadBtn'), resetUploadBtn = $('resetUploadBtn'), dropZone = $('dropZone');
+const resultCard = $('resultCard');
+
+/* ---------- microphone ---------- */
+const MIC_CONFIG = { audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } };
+const MAX_SECONDS = 10, MIN_STOP_SECONDS = 4, TARGET_RATE = 22050;
+let stream = null, recorder = null, chunks = [], meterCtx = null, analyser = null, meterRaf = 0, tick = null, startedAt = 0;
+
+const pad = n => String(n).padStart(2, '0');
+
+function levelHint(rms) {
+  if (rms < 0.01) return 'Very quiet: bring the phone closer';
+  if (rms < 0.03) return 'A bit quiet: move a little closer';
+  if (rms > 0.4) return 'Too loud: move back a little';
+  return 'Nice level! Keep it steady';
+}
+
+function drawMeter() {
+  if (!analyser) return;
+  const data = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(data);
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
+  const rms = Math.sqrt(sum / data.length);
+  const db = 20 * Math.log10(Math.max(rms, 1e-5));
+  setMeter(Math.min(1, Math.max(0, (db + 60) / 50)));
+  micHint.textContent = levelHint(rms);
+  meterRaf = requestAnimationFrame(drawMeter);
+}
+
+async function startRecording() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia(MIC_CONFIG);
+  } catch (err) {
+    console.error(err);
+    listenState.textContent = 'Mic blocked';
+    micHint.textContent = 'Please allow microphone access';
+    return;
+  }
+  meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = meterCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  meterCtx.createMediaStreamSource(stream).connect(analyser);
+  drawMeter();
+
+  chunks = [];
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+  recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+  recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  recorder.onstop = onRecorded;
+  recorder.start(250);
+
+  startedAt = Date.now();
+  micBtn.classList.add('recording');
+  listenState.textContent = 'Listening...';
+  tick = setInterval(() => {
+    const s = (Date.now() - startedAt) / 1000;
+    recordTimer.textContent = `00:${pad(Math.min(MAX_SECONDS, Math.floor(s)))} / 00:${MAX_SECONDS}`;
+    timeFill.style.width = Math.min(100, (s / MAX_SECONDS) * 100) + '%';
+    if (s >= MAX_SECONDS) stopRecording(true);
+  }, 100);
+}
+
+function stopRecording(force) {
+  if (!recorder || recorder.state !== 'recording') return;
+  const s = (Date.now() - startedAt) / 1000;
+  if (!force && s < MIN_STOP_SECONDS) {
+    listenState.textContent = `Wait ${Math.ceil(MIN_STOP_SECONDS - s)}s more...`;
+    return;
+  }
+  recorder.stop();
+}
+
+async function onRecorded() {
+  clearInterval(tick);
+  cancelAnimationFrame(meterRaf);
+  stream.getTracks().forEach(t => t.stop());
+  if (meterCtx) meterCtx.close();
+  meterCtx = analyser = null;
+  setMeter(0);
+  micBtn.classList.remove('recording');
+  timeFill.style.width = '0';
+  recordTimer.textContent = `00:00 / 00:${MAX_SECONDS}`;
+  listenState.textContent = 'Thinking...';
+  const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+  recorder = null;
+
+  let upload = blob, name = 'mic_clip.webm';
+  try {
+    upload = await toWav(blob);
+    name = 'mic_clip.wav';
+  } catch (err) {
+    console.warn('decodeAudioData failed, sending original blob', err);
+  }
+  await sendAudio(upload, name);
+  listenState.textContent = 'Tap to listen';
+  micHint.textContent = 'Play a song near the mic';
+}
+
+micBtn.addEventListener('click', () => {
+  if (recorder && recorder.state === 'recording') stopRecording(false);
+  else startRecording();
+});
+
+async function toWav(blob) {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx();
+  let decoded;
+  try {
+    decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
+  } finally {
+    ctx.close();
+  }
+  const frames = Math.max(1, Math.ceil(decoded.duration * TARGET_RATE));
+  const offline = new OfflineAudioContext(1, frames, TARGET_RATE);
+  const src = offline.createBufferSource();
+  src.buffer = decoded;
+  src.connect(offline.destination);
+  src.start();
+  const rendered = await offline.startRendering();
+  return new Blob([encodeWav(rendered.getChannelData(0), TARGET_RATE)], { type: 'audio/wav' });
+}
+
+function encodeWav(samples, rate) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return buf;
+}
+
+/* ---------- upload ---------- */
+function setFile(file) {
+  fileTag.textContent = file ? file.name : 'No file selected';
+  uploadBtn.disabled = !file;
+}
+fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) { const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files; setFile(f); }
+});
+resetUploadBtn.addEventListener('click', () => { fileInput.value = ''; setFile(null); });
+uploadBtn.addEventListener('click', async () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  uploadBtn.disabled = true;
+  await sendAudio(f, f.name);
+  uploadBtn.disabled = false;
+});
+
+async function sendAudio(blob, filename) {
+  const fd = new FormData();
+  fd.append('audio', blob, filename);
+  try {
+    const res = await fetch('/identify', { method: 'POST', body: fd });
+    renderResult(await res.json());
+  } catch (err) {
+    console.error(err);
+    renderResult({ matched: false, message: 'Could not reach the SongSense server.' });
+  }
+}
+
+/* ---------- result ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function renderResult(data) {
+  resultCard.classList.remove('hidden');
+  const meta = data.metadata || {};
+  const pct = Math.min(100, Math.max(0, Number(data.confidence || 0) * 100));
+  $('strengthFill').style.width = pct + '%';
+  $('strengthHandle').style.left = pct + '%';
+  $('matchStrengthText').textContent = Math.round(pct) + '%';
+  $('votesValue').textContent = data.votes || 0;
+  $('confidenceValue').textContent = Math.round(pct) + '%';
+  $('hashValue').textContent = data.total_clip_hashes || 0;
+
+  const badge = $('matchBadge');
+  if (data.matched) {
+    badge.textContent = 'Matched!'; badge.className = 'badge match';
+    $('resultTitle').textContent = meta.title || data.song_id || 'Matched song';
+    $('resultSub').textContent = data.message || 'Song identified.';
+    $('offsetValue').textContent = Number(data.offset_sec || 0).toFixed(1) + 's';
+    $('composerValue').textContent = meta.composer || 'Unknown';
+    $('ragaValue').textContent = meta.raga || 'Unknown';
+    $('filmValue').textContent = meta.film || 'Unknown';
+    $('singerValue').textContent = meta.singer || 'Unknown';
+  } else {
+    badge.textContent = 'No match'; badge.className = 'badge no-match';
+    $('resultTitle').textContent = 'No match found';
+    $('resultSub').textContent = data.message || 'Try again closer to the speaker.';
+    $('offsetValue').textContent = '0.0s';
+    ['composer', 'raga', 'film', 'singer'].forEach(k => $(k + 'Value').textContent = '-');
+  }
+
+  const related = Array.isArray(data.related_songs) ? data.related_songs : [];
+  $('relatedSongs').innerHTML = related.length ? related.slice(0, 4).map(s => {
+    const chips = ['composer', 'raga', 'singer'].filter(k => s[k] && s[k] !== 'Unknown').map(k => `<span class="chip">${esc(s[k])}</span>`).join('');
+    return `<div class="song"><strong>${esc(s.title || s.song_id || 'Related song')}</strong>${chips}<span class="chip reason">${esc(s.reason || 'Related')}</span></div>`;
+  }).join('') : '<div class="song"><strong>No related songs yet</strong><span class="chip reason">Try another clip</span></div>';
+}
+
+/* ---------- health ---------- */
+async function loadHealth() {
+  let d = {};
+  try { d = await (await fetch('/health')).json(); } catch (e) { /* offline */ }
+  [['redisHealth', 'Redis', d.redis_connected], ['neoHealth', 'Neo4j', d.neo4j_connected]].forEach(([id, label, ok]) => {
+    const el = $(id);
+    el.classList.toggle('online', !!ok);
+    el.innerHTML = `<span class="dot"></span>${label} ${ok ? 'online' : 'offline'}`;
+  });
+}
+loadHealth();
+</script>
+</body>
+</html>
