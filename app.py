@@ -37,7 +37,7 @@ from config import (
 )
 from matcher import identify_audio
 from neo4j_store import neo4j_store
-from sqlite_store import sqlite_store
+from redis_store import redis_store
 
 logging.basicConfig(
     level=logging.INFO,
@@ -129,10 +129,10 @@ def identify() -> Any:
 @app.route("/health", methods=["GET"])
 def health() -> Any:
     """System status and stats endpoint."""
-    stats = sqlite_store.get_stats()
+    stats = redis_store.get_stats()
     return jsonify({
         "status": "healthy",
-        "sqlite_connected": True,
+        "redis_connected": redis_store.is_connected,
         "neo4j_connected": neo4j_store.is_connected,
         "stats": stats,
     })

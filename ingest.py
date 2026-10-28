@@ -47,7 +47,7 @@ from config import (
 )
 from fingerprint import fingerprint_audio, load_audio
 from neo4j_store import neo4j_store
-from sqlite_store import sqlite_store
+from redis_store import redis_store
 
 logging.basicConfig(
     level=logging.INFO,
@@ -182,7 +182,7 @@ def ingest_folder(
     print("=" * 60)
     print(f"Directory:    {songs_dir.resolve()}")
     print(f"Total Songs:  {len(existing_files)}")
-    print(f"SQLite Store: {sqlite_store.db_path}")
+    print(f"Redis Target: {redis_store.host}:{redis_store.port} (Connected: {redis_store.is_connected})")
     print(f"Neo4j Target: {neo4j_store.uri} (Connected: {neo4j_store.is_connected})")
     print("=" * 60 + "\n")
 
@@ -214,8 +214,8 @@ def ingest_folder(
         num_hashes = len(fps)
         grand_total_hashes += num_hashes
 
-        # Index in SQLite (Persistent Index)
-        sqlite_store.add_song_fingerprints(song_id=song_id, fingerprints=fps)
+        # Index in Redis (Fingerprint Inverted Index)
+        redis_store.add_song_fingerprints(song_id=song_id, fingerprints=fps)
 
         # Index in Neo4j (Knowledge Graph)
         neo4j_store.add_song_metadata(
@@ -234,7 +234,7 @@ def ingest_folder(
             f"| Duration: {duration_sec:.1f}s | Hashes: {num_hashes:,}"
         )
 
-    stats = sqlite_store.get_stats()
+    stats = redis_store.get_stats()
     print("\n" + "=" * 60)
     print("  Ingestion Complete!")
     print("=" * 60)

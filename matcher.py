@@ -120,10 +120,20 @@ def find_matches(
     store: Any = None,
     config: FingerprintConfig = DEFAULT_CONFIG,
 ) -> Tuple[Optional[str], int, int, int, int]:
-    """Return song ID, votes, offset, total_hashes, and runner-up votes."""
+    """
+    Return song ID, votes (at best delta), offset (best delta), total_hashes, and runner-up best votes.
+    
+    Per-song logic:
+    - Build histogram of (song_id, delta_offset) pairs.
+    - For each song, find its single best delta_offset (highest vote bin).
+    - Add votes from delta-1 and delta+1 neighbors to that bin.
+    - Score each song by its best bin (after neighbor aggregation).
+    - Return: best song, its best-bin score, its best delta, total query hashes, runner-up best score.
+    - Votes never exceed total_clip_hashes * 3 (each hash matched at most 3 times).
+    """
     if store is None:
-        from sqlite_store import sqlite_store
-        store = sqlite_store
+        from redis_store import redis_store
+        store = redis_store
 
     total_clip_hashes = len(fingerprints)
     if total_clip_hashes == 0:
@@ -143,33 +153,47 @@ def find_matches(
             try:
                 song_id, db_offset_str = entry.rsplit(":", 1)
                 db_offset = int(db_offset_str)
-                for offset_delta in range(-config.match_neighbor_offsets[1], config.match_neighbor_offsets[2] + 1):
-                    delta_offset = db_offset - clip_offset + offset_delta
-                    diff_counter[(song_id, delta_offset)] += 1
+                delta_offset = db_offset - clip_offset
+                diff_counter[(song_id, delta_offset)] += 1
             except ValueError:
                 continue
 
     if not diff_counter:
         return None, 0, 0, total_clip_hashes, 0
 
-    song_vote_totals: Dict[str, int] = {}
-    for (song_id, _), vote_count in diff_counter.items():
-        song_vote_totals[song_id] = song_vote_totals.get(song_id, 0) + vote_count
+    # Group votes by song_id
+    song_deltas: Dict[str, Dict[int, int]] = {}
+    for (song_id, delta_offset), vote_count in diff_counter.items():
+        if song_id not in song_deltas:
+            song_deltas[song_id] = {}
+        song_deltas[song_id][delta_offset] = vote_count
 
-    if not song_vote_totals:
+    # For each song, find best delta and aggregate with neighbors
+    song_best_scores: Dict[str, Tuple[int, int]] = {}  # song_id -> (best_score, best_delta)
+    for song_id, deltas in song_deltas.items():
+        best_delta = max(deltas, key=lambda d: deltas[d])
+        best_bin_votes = deltas[best_delta]
+        
+        # Add votes from delta-1 and delta+1
+        neighbor_votes = deltas.get(best_delta - 1, 0) + deltas.get(best_delta + 1, 0)
+        aggregated_score = best_bin_votes + neighbor_votes
+        
+        song_best_scores[song_id] = (aggregated_score, best_delta)
+
+    if not song_best_scores:
         return None, 0, 0, total_clip_hashes, 0
 
-    best_song_id, top_votes = max(song_vote_totals.items(), key=lambda item: item[1])
-    runner_up = sorted(song_vote_totals.values(), reverse=True)[1] if len(song_vote_totals) > 1 else 0
+    # Find best and runner-up songs by aggregated score
+    best_song_id, (top_votes, best_delta) = max(song_best_scores.items(), key=lambda item: item[1][0])
+    
+    # Get runner-up best score (second highest)
+    sorted_scores = sorted(song_best_scores.values(), key=lambda x: x[0], reverse=True)
+    runner_up = sorted_scores[1][0] if len(sorted_scores) > 1 else 0
 
-    best_delta = None
-    best_delta_votes = 0
-    for (song_id, delta_offset), vote_count in diff_counter.items():
-        if song_id == best_song_id and vote_count > best_delta_votes:
-            best_delta_votes = vote_count
-            best_delta = delta_offset
+    # Cap votes to 3x total clip hashes
+    top_votes = min(top_votes, total_clip_hashes * 3)
 
-    return best_song_id, top_votes, best_delta or 0, total_clip_hashes, runner_up
+    return best_song_id, top_votes, best_delta, total_clip_hashes, runner_up
 
 
 def identify_audio(
@@ -183,15 +207,15 @@ def identify_audio(
 
     Args:
         audio_source: File path, stream, or numpy audio array.
-        store: Fingerprint store instance (defaults to SQLite).
+        store: Fingerprint store instance (defaults to Redis).
         config: System configuration.
 
     Returns:
         MatchResult object.
     """
     if store is None:
-        from sqlite_store import sqlite_store
-        store = sqlite_store
+        from redis_store import redis_store
+        store = redis_store
     try:
         fingerprints = fingerprint_query(audio_source, config=config)
     except Exception as exc:

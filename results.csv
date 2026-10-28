@@ -1,0 +1,81 @@
+trial,condition,snr_db,ground_truth,predicted,correct,votes,confidence,offset_sec,latency_ms
+1,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,174,0.1726,0.56,13.37
+2,Clean (No Noise),Clean,song3_bhoopali_night,song3_bhoopali_night,True,60,0.1003,5.85,12.93
+3,Clean (No Noise),Clean,song2_bairagi,song2_bairagi,True,64,0.1021,3.34,12.32
+4,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,193,0.2497,13.0,11.51
+5,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,168,0.2283,14.02,11.48
+6,Clean (No Noise),Clean,song4_yaman,song4_yaman,True,248,0.4168,0.74,14.49
+7,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,246,0.2847,2.23,14.24
+8,Clean (No Noise),Clean,song2_bairagi,song2_bairagi,True,40,0.0928,5.57,10.91
+9,Clean (No Noise),Clean,song5_darbari,song5_darbari,True,33,0.0537,14.3,9.76
+10,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,189,0.2578,13.37,12.48
+11,Clean (No Noise),Clean,song2_bairagi,song2_bairagi,True,84,0.1402,13.0,11.0
+12,Clean (No Noise),Clean,song4_yaman,song4_yaman,True,164,0.2219,5.2,10.66
+13,Clean (No Noise),Clean,song4_yaman,song4_yaman,True,239,0.4044,14.02,15.51
+14,Clean (No Noise),Clean,song3_bhoopali_night,song3_bhoopali_night,True,92,0.1422,0.19,13.2
+15,Clean (No Noise),Clean,song2_bairagi,song2_bairagi,True,110,0.2128,10.03,12.7
+16,Clean (No Noise),Clean,song3_bhoopali_night,song3_bhoopali_night,True,155,0.2773,6.59,10.85
+17,Clean (No Noise),Clean,song2_bairagi,song2_bairagi,True,181,0.3291,5.11,16.01
+18,Clean (No Noise),Clean,song3_bhoopali_night,song3_bhoopali_night,True,142,0.2491,2.41,12.73
+19,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,306,0.3696,9.01,14.36
+20,Clean (No Noise),Clean,song1_bhoopali,song1_bhoopali,True,240,0.3429,8.54,13.52
+1,20 dB SNR (Mild),20.0,song3_bhoopali_night,None,False,4,0.0007,0.0,24.49
+2,20 dB SNR (Mild),20.0,song3_bhoopali_night,song3_bhoopali_night,True,7,0.0012,1.02,22.9
+3,20 dB SNR (Mild),20.0,song4_yaman,None,False,4,0.0007,0.0,21.5
+4,20 dB SNR (Mild),20.0,song1_bhoopali,song1_bhoopali,True,12,0.0021,9.01,25.37
+5,20 dB SNR (Mild),20.0,song1_bhoopali,song1_bhoopali,True,5,0.0009,3.16,26.44
+6,20 dB SNR (Mild),20.0,song3_bhoopali_night,song3_bhoopali_night,True,5,0.0009,14.95,26.7
+7,20 dB SNR (Mild),20.0,song5_darbari,None,False,2,0.0003,0.0,25.6
+8,20 dB SNR (Mild),20.0,song5_darbari,None,False,4,0.0007,0.0,26.63
+9,20 dB SNR (Mild),20.0,song1_bhoopali,song1_bhoopali,True,9,0.0016,1.02,32.2
+10,20 dB SNR (Mild),20.0,song2_bairagi,None,False,4,0.0007,0.0,24.02
+11,20 dB SNR (Mild),20.0,song1_bhoopali,song1_bhoopali,True,9,0.0016,5.57,28.41
+12,20 dB SNR (Mild),20.0,song1_bhoopali,song1_bhoopali,True,8,0.0014,9.01,26.8
+13,20 dB SNR (Mild),20.0,song3_bhoopali_night,None,False,3,0.0006,0.0,32.52
+14,20 dB SNR (Mild),20.0,song3_bhoopali_night,song3_bhoopali_night,True,6,0.0011,1.39,22.22
+15,20 dB SNR (Mild),20.0,song3_bhoopali_night,None,False,4,0.0008,0.0,26.61
+16,20 dB SNR (Mild),20.0,song2_bairagi,None,False,4,0.0007,0.0,24.47
+17,20 dB SNR (Mild),20.0,song1_bhoopali,song1_bhoopali,True,6,0.001,14.49,25.13
+18,20 dB SNR (Mild),20.0,song2_bairagi,song2_bairagi,True,6,0.001,12.72,21.76
+19,20 dB SNR (Mild),20.0,song2_bairagi,None,False,4,0.0007,0.0,21.62
+20,20 dB SNR (Mild),20.0,song4_yaman,song4_yaman,True,5,0.0009,18.02,21.95
+1,10 dB SNR (Moderate),10.0,song3_bhoopali_night,None,False,3,0.0005,0.0,21.85
+2,10 dB SNR (Moderate),10.0,song2_bairagi,None,False,3,0.0005,0.0,22.28
+3,10 dB SNR (Moderate),10.0,song1_bhoopali,song1_bhoopali,True,9,0.0016,5.48,22.8
+4,10 dB SNR (Moderate),10.0,song1_bhoopali,song1_bhoopali,True,10,0.0018,7.52,23.32
+5,10 dB SNR (Moderate),10.0,song4_yaman,song4_yaman,True,5,0.0009,6.41,35.08
+6,10 dB SNR (Moderate),10.0,song1_bhoopali,song1_bhoopali,True,8,0.0014,5.02,28.29
+7,10 dB SNR (Moderate),10.0,song5_darbari,None,False,4,0.0007,0.0,23.99
+8,10 dB SNR (Moderate),10.0,song2_bairagi,song2_bairagi,True,5,0.0009,11.89,27.88
+9,10 dB SNR (Moderate),10.0,song4_yaman,None,False,3,0.0005,0.0,26.61
+10,10 dB SNR (Moderate),10.0,song2_bairagi,None,False,3,0.0005,0.0,30.88
+11,10 dB SNR (Moderate),10.0,song2_bairagi,None,False,3,0.0006,0.0,27.47
+12,10 dB SNR (Moderate),10.0,song5_darbari,None,False,4,0.0007,0.0,31.44
+13,10 dB SNR (Moderate),10.0,song3_bhoopali_night,None,False,4,0.0007,0.0,25.79
+14,10 dB SNR (Moderate),10.0,song4_yaman,song4_yaman,True,5,0.0009,13.93,34.36
+15,10 dB SNR (Moderate),10.0,song4_yaman,None,False,2,0.0004,0.0,30.84
+16,10 dB SNR (Moderate),10.0,song2_bairagi,song2_bairagi,True,5,0.0009,3.25,25.08
+17,10 dB SNR (Moderate),10.0,song5_darbari,None,False,2,0.0003,0.0,20.68
+18,10 dB SNR (Moderate),10.0,song1_bhoopali,song1_bhoopali,True,6,0.0011,1.11,20.62
+19,10 dB SNR (Moderate),10.0,song1_bhoopali,None,False,4,0.0007,0.0,24.48
+20,10 dB SNR (Moderate),10.0,song2_bairagi,None,False,3,0.0005,0.0,21.47
+1,5 dB SNR (Heavy),5.0,song5_darbari,None,False,3,0.0005,0.0,35.85
+2,5 dB SNR (Heavy),5.0,song4_yaman,song4_yaman,True,7,0.0012,9.1,23.67
+3,5 dB SNR (Heavy),5.0,song5_darbari,None,False,4,0.0007,0.0,22.16
+4,5 dB SNR (Heavy),5.0,song5_darbari,None,False,3,0.0006,0.0,24.13
+5,5 dB SNR (Heavy),5.0,song5_darbari,None,False,2,0.0004,0.0,21.74
+6,5 dB SNR (Heavy),5.0,song1_bhoopali,song1_bhoopali,True,6,0.0011,2.79,21.56
+7,5 dB SNR (Heavy),5.0,song3_bhoopali_night,None,False,3,0.0005,0.0,23.62
+8,5 dB SNR (Heavy),5.0,song1_bhoopali,song1_bhoopali,True,8,0.0014,1.02,23.83
+9,5 dB SNR (Heavy),5.0,song4_yaman,None,False,3,0.0005,0.0,23.59
+10,5 dB SNR (Heavy),5.0,song4_yaman,None,False,4,0.0007,0.0,27.47
+11,5 dB SNR (Heavy),5.0,song3_bhoopali_night,None,False,2,0.0004,0.0,21.85
+12,5 dB SNR (Heavy),5.0,song2_bairagi,None,False,2,0.0004,0.0,23.44
+13,5 dB SNR (Heavy),5.0,song1_bhoopali,song1_bhoopali,True,8,0.0014,14.86,24.74
+14,5 dB SNR (Heavy),5.0,song3_bhoopali_night,None,False,2,0.0004,0.0,22.94
+15,5 dB SNR (Heavy),5.0,song5_darbari,None,False,3,0.0005,0.0,25.32
+16,5 dB SNR (Heavy),5.0,song2_bairagi,None,False,2,0.0004,0.0,25.09
+17,5 dB SNR (Heavy),5.0,song2_bairagi,None,False,3,0.0005,0.0,23.91
+18,5 dB SNR (Heavy),5.0,song5_darbari,None,False,2,0.0004,0.0,25.33
+19,5 dB SNR (Heavy),5.0,song5_darbari,song5_darbari,True,5,0.0009,7.8,26.58
+20,5 dB SNR (Heavy),5.0,song4_yaman,None,False,3,0.0005,0.0,21.39
