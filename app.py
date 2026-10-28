@@ -101,7 +101,7 @@ def identify() -> Any:
         logger.info("Saved query audio to: %s", temp_path)
 
         # Run full identification pipeline
-        result = identify_audio(temp_path, store=sqlite_store, config=DEFAULT_CONFIG)
+        result = identify_audio(temp_path, store=redis_store, config=DEFAULT_CONFIG)
         logger.info(
             "Identification complete: matched=%s, song_id=%s, votes=%d",
             result.matched,
